@@ -1,0 +1,14 @@
+// This runs automatically when a new order is created
+export default async ({ req, res, log, error }) => {
+    // The order data is in req.body
+    const order = JSON.parse(req.body);
+    
+    // Send email using a service like Resend, SendGrid, etc.
+    await sendEmail({
+        to: "your-email@bakery.com",
+        subject: `New Order: ${order.productType}`,
+        text: `Customer wants: ${JSON.stringify(order)}`
+    });
+    
+    return res.send("Notification sent");
+};
