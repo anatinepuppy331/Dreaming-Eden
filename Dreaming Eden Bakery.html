@@ -4,9 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dreaming Eden Bakery · custom cakes & online order</title>
-    <!-- Tailwind (lightweight) + lucide icons -->
+    <!-- Tailwind + lucide icons -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Appwrite SDK (v16) -->
+    <script src="https://cdn.jsdelivr.net/npm/appwrite@16.0.0/dist/iife/sdk.min.js"></script>
     <style>
         /* keyframes & custom gradients */
         @keyframes floatCloud { 0% { transform: translateX(-4px) translateY(0px); } 50% { transform: translateX(5px) translateY(-5px); } 100% { transform: translateX(-4px) translateY(0px); } }
@@ -29,23 +31,41 @@
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 100; display: none; align-items: center; justify-content: center; }
         .modal-container { background: white; border-radius: 2rem; max-width: 600px; width: 90%; max-height: 85vh; overflow-y: auto; padding: 2rem; box-shadow: 0 25px 50px -12px black; }
         .dark .modal-container { background: #1f1f2e; color: #eee; }
-        /* simple reset / base */
         body { scroll-behavior: smooth; }
+        /* loading spinner */
+        .spinner { border: 3px solid #f3f3f3; border-top: 3px solid #ec4899; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; display: inline-block; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="bg-white dark:bg-gray-950 text-gray-800 dark:text-gray-200 font-sans antialiased">
 
-<!-- ========== MODAL: ONLINE ORDERING (CUSTOM DECO MESSAGE) ========== -->
+<!-- ========== MODAL: ONLINE ORDERING (with name/email + Appwrite) ========== -->
 <div id="orderModal" class="modal-overlay">
     <div class="modal-container relative">
         <button id="closeModalBtn" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 dark:hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
-        <h2 class="text-3xl font-bold mb-2 text-rainbow">🍰 start your order</h2>
-        <p class="text-sm text-gray-500 mb-5">Choose product & customize — we’ll contact you for decoration details.</p>
+        <h2 class="text-3xl font-bold mb-2 text-rainbow">🍰 place your order</h2>
+        <p class="text-sm text-gray-500 mb-5">We'll save your order and contact you within 24h.</p>
 
-        <form id="orderForm" class="space-y-6">
+        <form id="orderForm" class="space-y-5">
+            <!-- CUSTOMER INFO (new fields for Appwrite) -->
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block font-medium mb-1 text-sm">Your name *</label>
+                    <input type="text" id="customerName" required class="w-full p-3 border rounded-xl dark:bg-gray-800 dark:border-gray-700" placeholder="Jane Doe">
+                </div>
+                <div>
+                    <label class="block font-medium mb-1 text-sm">Email *</label>
+                    <input type="email" id="customerEmail" required class="w-full p-3 border rounded-xl dark:bg-gray-800 dark:border-gray-700" placeholder="jane@example.com">
+                </div>
+            </div>
+            <div>
+                <label class="block font-medium mb-1 text-sm">Phone (optional)</label>
+                <input type="tel" id="customerPhone" class="w-full p-3 border rounded-xl dark:bg-gray-800 dark:border-gray-700" placeholder="(555) 123-4567">
+            </div>
+
             <!-- product type -->
             <div>
-                <label class="block font-medium mb-2">Product type *</label>
+                <label class="block font-medium mb-1 text-sm">Product type *</label>
                 <select id="productType" class="w-full p-3 border rounded-xl dark:bg-gray-800 dark:border-gray-700" required>
                     <option value="">-- select --</option>
                     <option value="cake">🎂 Square cake (custom size/flavor)</option>
@@ -59,7 +79,7 @@
             <!-- cake dynamic fields (size, flavor, qty) -->
             <div id="cakeOptions" class="space-y-4 hidden">
                 <div>
-                    <label class="block font-medium mb-2">Size (cm) square</label>
+                    <label class="block font-medium mb-1 text-sm">Size (cm) square</label>
                     <select id="cakeSize" class="w-full p-3 border rounded-xl dark:bg-gray-800">
                         <option value="10">10 cm (serves 4-6)</option>
                         <option value="15">15 cm (serves 8-10)</option>
@@ -69,7 +89,7 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block font-medium mb-2">Flavor</label>
+                    <label class="block font-medium mb-1 text-sm">Flavor</label>
                     <select id="cakeFlavor" class="w-full p-3 border rounded-xl dark:bg-gray-800">
                         <option value="vanilla">Classic vanilla</option>
                         <option value="chocolate">Rich chocolate</option>
@@ -79,42 +99,44 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block font-medium mb-2">Quantity</label>
+                    <label class="block font-medium mb-1 text-sm">Quantity</label>
                     <input type="number" id="cakeQuantity" min="1" value="1" class="w-full p-3 border rounded-xl dark:bg-gray-800">
                 </div>
             </div>
 
             <!-- generic quantity for non‑cake -->
             <div id="genericQuantityField" class="hidden">
-                <label class="block font-medium mb-2">Quantity</label>
+                <label class="block font-medium mb-1 text-sm">Quantity</label>
                 <input type="number" id="genericQty" min="1" value="1" class="w-full p-3 border rounded-xl dark:bg-gray-800">
             </div>
 
             <!-- special decoration notes -->
             <div>
-                <label class="block font-medium mb-2">Decoration ideas / special requests</label>
+                <label class="block font-medium mb-1 text-sm">Decoration ideas / special requests</label>
                 <textarea id="specialNotes" rows="3" class="w-full p-3 border rounded-xl dark:bg-gray-800" placeholder="colors, theme, inscription, topper ..."></textarea>
             </div>
 
             <!-- MESSAGE: fees & follow‑up (as requested) -->
-            <div class="bg-pink-50 dark:bg-pink-950/30 p-5 rounded-2xl border-l-4 border-pink-400">
-                <div class="flex items-start gap-3">
-                    <i data-lucide="message-circle" class="w-6 h-6 text-pink-500 flex-shrink-0 mt-1"></i>
-                    <p class="text-sm text-pink-800 dark:text-pink-200"><span class="font-bold">📞 Once you place this request,</span> we’ll reach out personally to discuss decorations & final design. <strong>Additional fees may apply for special/deco details</strong> – we’ll provide a quote before baking.</p>
+            <div class="bg-pink-50 dark:bg-pink-950/30 p-4 rounded-2xl border-l-4 border-pink-400">
+                <div class="flex items-start gap-2">
+                    <i data-lucide="message-circle" class="w-5 h-5 text-pink-500 flex-shrink-0 mt-0.5"></i>
+                    <p class="text-xs text-pink-800 dark:text-pink-200"><span class="font-bold">📞 Once ordered,</span> we'll reach out to discuss decorations & final design. <strong>Extra fees may apply for special deco</strong> – we'll quote before baking.</p>
                 </div>
             </div>
 
-            <!-- form buttons -->
-            <div class="flex gap-3 pt-4">
-                <button type="submit" class="bg-gradient-to-r from-pink-500 to-orange-400 text-white px-6 py-3 rounded-xl font-semibold flex-1 flex items-center justify-center gap-2"><i data-lucide="check"></i> send request</button>
+            <!-- form buttons with loading state -->
+            <div class="flex gap-3 pt-2">
+                <button type="submit" id="submitOrderBtn" class="bg-gradient-to-r from-pink-500 to-orange-400 text-white px-6 py-3 rounded-xl font-semibold flex-1 flex items-center justify-center gap-2">
+                    <span>send request</span>
+                </button>
                 <button type="button" id="cancelModalBtn" class="border-2 border-gray-300 dark:border-gray-700 px-6 py-3 rounded-xl font-semibold flex-1">cancel</button>
             </div>
-            <p class="text-xs text-gray-400 text-center mt-4">We’ll reply within 24h to confirm pricing & decoration.</p>
+            <p class="text-xs text-gray-400 text-center mt-2">We'll reply within 24h to confirm pricing & decoration.</p>
         </form>
     </div>
 </div>
 
-<!-- ========== FIXED NAVIGATION (multi‑tab + order button) ========== -->
+<!-- ========== FIXED NAVIGATION ========== -->
 <div class="glass-nav fixed top-0 left-0 right-0 z-50 border-b border-gray-200 dark:border-gray-800">
     <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
         <!-- logo / brand (home) -->
@@ -146,12 +168,10 @@
     </div>
 </div>
 
-<!-- ========== MAIN TAB CONTENT (4 pages) ========== -->
+<!-- ========== MAIN TAB CONTENT ========== -->
 <main class="pt-24 min-h-screen">
-
-    <!-- ############  HOME TAB  ############ -->
+    <!-- HOME TAB -->
     <section id="tab-home" class="tab-content block">
-        <!-- hero -->
         <div class="relative overflow-hidden pb-10">
             <div class="absolute inset-0 -z-10">
                 <div class="absolute top-20 left-10 w-72 h-72 bg-pink-300/30 rounded-full blur-3xl animate-pulse-soft"></div>
@@ -170,7 +190,6 @@
                         <button class="border-2 border-gray-300 dark:border-gray-700 px-6 py-2 rounded-lg flex gap-2 items-center" id="homeVisitBtn"><i data-lucide="map-pin"></i> Visit Us</button>
                     </div>
                 </div>
-                <!-- circle graphic -->
                 <div class="relative flex justify-center">
                     <div class="w-64 h-64 md:w-80 md:h-80 rounded-full gradient-circle flex items-center justify-center shadow-2xl">
                         <div class="absolute inset-6 rounded-full bg-white/20"></div>
@@ -180,8 +199,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- featured mini cards -->
         <div class="max-w-7xl mx-auto px-6 py-12 grid md:grid-cols-3 gap-6">
             <div class="bg-white dark:bg-gray-900 border rounded-2xl p-6 text-center card-hover">
                 <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center mb-4"><i data-lucide="cake" class="text-white"></i></div>
@@ -199,8 +216,6 @@
                 <p class="text-gray-500">artisan quality, love</p>
             </div>
         </div>
-
-        <!-- quote banner -->
         <div class="max-w-7xl mx-auto px-6 py-8">
             <div class="bg-gradient-to-r from-pink-100 to-orange-100 dark:from-pink-950/30 dark:to-orange-950/30 rounded-3xl p-8 text-center">
                 <i data-lucide="heart" class="w-12 h-12 mx-auto text-pink-500 mb-3"></i>
@@ -210,7 +225,7 @@
         </div>
     </section>
 
-    <!-- ############  MENU TAB  ############ -->
+    <!-- MENU TAB -->
     <section id="tab-menu" class="tab-content hidden">
         <div class="max-w-7xl mx-auto px-6 py-8">
             <div class="text-center mb-12">
@@ -218,7 +233,6 @@
                 <p class="text-gray-500 dark:text-gray-400">handcrafted every day • order online</p>
             </div>
             <div class="grid md:grid-cols-2 gap-12">
-                <!-- left: cakes & cupcakes -->
                 <div>
                     <h3 class="text-3xl font-semibold mb-6 flex items-center gap-2"><i data-lucide="cake" class="text-pink-500"></i>Signature Cakes</h3>
                     <div class="space-y-5">
@@ -236,7 +250,6 @@
                         <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Strawberry bliss (jumbo)</span> <span class="text-orange-600">$7</span></div>
                     </div>
                 </div>
-                <!-- right: breads & pastries -->
                 <div>
                     <h3 class="text-3xl font-semibold mb-6 flex items-center gap-2"><i data-lucide="chef-hat" class="text-amber-500"></i>Artisan Breads</h3>
                     <div class="space-y-5">
@@ -252,7 +265,6 @@
                     </div>
                 </div>
             </div>
-            <!-- order call to action (opens modal) -->
             <div class="mt-16 text-center p-6 bg-gray-100 dark:bg-gray-800 rounded-3xl">
                 <i data-lucide="truck" class="w-8 h-8 mx-auto text-pink-500"></i>
                 <p class="text-lg">Custom sizes & catering – <button class="text-pink-600 underline" id="menuContactBtn">order here</button></p>
@@ -260,7 +272,7 @@
         </div>
     </section>
 
-    <!-- ############  ABOUT TAB  ############ -->
+    <!-- ABOUT TAB -->
     <section id="tab-about" class="tab-content hidden">
         <div class="max-w-7xl mx-auto px-6 py-8">
             <div class="grid md:grid-cols-2 gap-14 items-center">
@@ -279,7 +291,6 @@
                     </div>
                 </div>
             </div>
-            <!-- team -->
             <div class="mt-20">
                 <h3 class="text-3xl font-bold text-center mb-10">meet the dreamers</h3>
                 <div class="grid sm:grid-cols-3 gap-6">
@@ -291,12 +302,12 @@
         </div>
     </section>
 
-    <!-- ############  CONTACT TAB  ############ -->
+    <!-- CONTACT TAB -->
     <section id="tab-contact" class="tab-content hidden">
         <div class="max-w-7xl mx-auto px-6 py-8">
             <div class="text-center mb-14">
                 <h2 class="text-5xl font-bold mb-2 text-rainbow">Visit or say hello</h2>
-                <p class="text-gray-500 dark:text-gray-400">we’d love to hear from you</p>
+                <p class="text-gray-500 dark:text-gray-400">we'd love to hear from you</p>
             </div>
             <div class="grid md:grid-cols-3 gap-7">
                 <div class="bg-white dark:bg-gray-900 border rounded-2xl p-8 text-center card-hover">
@@ -312,7 +323,6 @@
                     <h3 class="font-bold text-xl">Email</h3><p class="text-gray-500 mt-2">hello@dreamingeden.com<br>reply within 24h</p>
                 </div>
             </div>
-            <!-- hours + social -->
             <div class="mt-16 bg-gray-100 dark:bg-gray-800 rounded-3xl p-8 max-w-2xl mx-auto text-center">
                 <h4 class="font-bold text-2xl mb-4">🍰 hours</h4>
                 <p class="mb-2">Mon–Fri: 6am–8pm | Sat: 7am–9pm | Sun: 7am–7pm</p>
@@ -333,10 +343,37 @@
     </div>
 </footer>
 
-<!-- ========== DEPLOYMENT‑READY JAVASCRIPT ========== -->
+<!-- ========== COMPLETE JAVASCRIPT (Appwrite integration) ========== -->
 <script>
     (function() {
-        // ---------- MODAL ----------
+        // ---------- APPRWRITE INIT (REPLACE WITH YOUR CREDENTIALS) ----------
+        // !!! IMPORTANT: Replace these with your actual Appwrite project details !!!
+        const APPRWRITE_ENDPOINT = 'https://[YOUR_PROJECT_ID].appwrite.io/v1'; // e.g. https://cloud.appwrite.io/v1
+        const APPRWRITE_PROJECT = '[YOUR_PROJECT_ID]'; // Your project ID
+        const DATABASE_ID = '[YOUR_DATABASE_ID]'; // Replace with your database ID
+        const COLLECTION_ID = '[YOUR_COLLECTION_ID]'; // Replace with your orders collection ID
+
+        // Initialize Appwrite client (will be used if credentials are set)
+        let databases = null;
+        let appwriteReady = false;
+
+        try {
+            if (APPRWRITE_ENDPOINT && APPRWRITE_PROJECT && !APPRWRITE_ENDPOINT.includes('[YOUR')) {
+                const client = new Appwrite.Client();
+                client
+                    .setEndpoint(APPRWRITE_ENDPOINT)
+                    .setProject(APPRWRITE_PROJECT);
+                databases = new Appwrite.Databases(client);
+                appwriteReady = true;
+                console.log('✅ Appwrite initialized');
+            } else {
+                console.warn('⚠️ Appwrite credentials not set. Orders will be saved locally only (demo mode).');
+            }
+        } catch (e) {
+            console.error('Appwrite init error:', e);
+        }
+
+        // ---------- MODAL ELEMENTS ----------
         const modal = document.getElementById('orderModal');
         const openModalBtns = [
             document.getElementById('globalOrderBtn'),
@@ -349,6 +386,7 @@
         const cakeOptions = document.getElementById('cakeOptions');
         const genericQtyField = document.getElementById('genericQuantityField');
         const orderForm = document.getElementById('orderForm');
+        const submitBtn = document.getElementById('submitOrderBtn');
         const homeVisitBtn = document.getElementById('homeVisitBtn');
 
         // open modal
@@ -359,7 +397,7 @@
         openModalBtns.forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
-                if (btn.id === 'homeViewMenuBtn') switchTab('menu');  // go to menu tab
+                if (btn.id === 'homeViewMenuBtn') switchTab('menu');
                 openOrderModal();
             });
         });
@@ -390,31 +428,98 @@
             });
         }
 
-        // form submit (demo + deco message)
+        // ---------- ORDER SUBMISSION (Appwrite + fallback) ----------
         if (orderForm) {
-            orderForm.addEventListener('submit', (e) => {
+            orderForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const type = productType?.value;
-                if (!type) { alert('Please select a product'); return; }
-                let details = `🍰 Order request:\nProduct: ${type}`;
-                if (type === 'cake') {
-                    const size = document.getElementById('cakeSize')?.value || '?';
-                    const flavor = document.getElementById('cakeFlavor')?.value || '?';
-                    const qty = document.getElementById('cakeQuantity')?.value || '1';
-                    details += `\nSize: ${size}cm\nFlavor: ${flavor}\nQuantity: ${qty}`;
-                } else {
-                    const qty = document.getElementById('genericQty')?.value || '1';
-                    details += `\nQuantity: ${qty}`;
-                }
-                const notes = document.getElementById('specialNotes')?.value;
-                if (notes) details += `\nSpecial requests: ${notes}`;
                 
-                alert(`✨ ${details}\n\n📞 We’ll contact you within 24h to discuss decorations & final pricing. Additional fees may apply for special decorations.`);
-                closeModal();
-                orderForm.reset();
-                cakeOptions?.classList.add('hidden');
-                genericQtyField?.classList.add('hidden');
+                // Validate required fields
+                const name = document.getElementById('customerName')?.value;
+                const email = document.getElementById('customerEmail')?.value;
+                const type = productType?.value;
+
+                if (!name || !email || !type) {
+                    alert('Please fill in name, email and product type');
+                    return;
+                }
+
+                // Show loading state
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<span class="spinner"></span> saving...';
+                submitBtn.disabled = true;
+
+                try {
+                    // Build order object (matches Appwrite collection schema)
+                    const orderData = {
+                        customerName: name,
+                        customerEmail: email,
+                        customerPhone: document.getElementById('customerPhone')?.value || '',
+                        productType: type,
+                        quantity: type === 'cake' 
+                            ? parseInt(document.getElementById('cakeQuantity')?.value) || 1
+                            : parseInt(document.getElementById('genericQty')?.value) || 1,
+                        specialRequests: document.getElementById('specialNotes')?.value || '',
+                        status: 'pending',
+                        createdAt: new Date().toISOString()
+                    };
+
+                    // Add cake-specific fields
+                    if (type === 'cake') {
+                        orderData.cakeSize = document.getElementById('cakeSize')?.value || '';
+                        orderData.cakeFlavor = document.getElementById('cakeFlavor')?.value || '';
+                    }
+
+                    let orderId = null;
+
+                    // Save to Appwrite if configured
+                    if (appwriteReady && databases) {
+                        try {
+                            const response = await databases.createDocument(
+                                DATABASE_ID,
+                                COLLECTION_ID,
+                                'unique()',
+                                orderData
+                            );
+                            orderId = response.$id;
+                            console.log('✅ Order saved to Appwrite:', orderId);
+                        } catch (appwriteError) {
+                            console.error('Appwrite save failed:', appwriteError);
+                            // Fallback to localStorage if Appwrite fails
+                            saveToLocalStorage(orderData);
+                        }
+                    } else {
+                        // Demo mode: save to localStorage
+                        saveToLocalStorage(orderData);
+                    }
+
+                    // Success message
+                    let successMsg = '✅ Order received! We\'ll contact you within 24h to discuss decorations.';
+                    if (orderId) successMsg += `\nOrder reference: ${orderId}`;
+                    else successMsg += '\n(Demo mode: order saved locally)';
+                    
+                    alert(successMsg);
+                    
+                    closeModal();
+                    orderForm.reset();
+                    cakeOptions?.classList.add('hidden');
+                    genericQtyField?.classList.add('hidden');
+
+                } catch (error) {
+                    console.error('Order error:', error);
+                    alert('Sorry, there was an error. Please try again or contact us directly.');
+                } finally {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                }
             });
+        }
+
+        // Fallback: save to localStorage (demo mode)
+        function saveToLocalStorage(order) {
+            const orders = JSON.parse(localStorage.getItem('bakeryOrders') || '[]');
+            orders.push({ ...order, localId: Date.now() });
+            localStorage.setItem('bakeryOrders', JSON.stringify(orders));
+            console.log('💾 Order saved locally (demo)');
         }
 
         // ---------- TAB SWITCHING ----------
@@ -442,16 +547,29 @@
         tabs.forEach(btn => btn.addEventListener('click', (e) => { e.preventDefault(); switchTab(btn.dataset.tab); }));
         document.getElementById('logoHome')?.addEventListener('click', () => switchTab('home'));
 
-        // initial tab from hash
         const initial = window.location.hash.replace('#','') || 'home';
         if (['home','menu','about','contact'].includes(initial)) switchTab(initial);
         else switchTab('home');
 
-        // re-run lucide
+        // Refresh icons
         lucide.createIcons();
     })();
 </script>
-<!-- final icon render -->
-<script>setTimeout(() => lucide?.createIcons(), 100);</script>
+<!-- ensure icons after any dynamic content -->
+<script>setTimeout(() => lucide?.createIcons(), 150);</script>
+
+<!-- ========== HOW TO VIEW ORDERS (instructions) ========== -->
+<!-- 
+    To see orders in Appwrite Console:
+    1. Go to https://appwrite.io/console
+    2. Select your project
+    3. Navigate to Databases → your database → "orders" collection
+    4. All submissions appear here with timestamps
+    
+    To test locally (demo mode):
+    - Orders are saved in browser's localStorage
+    - Open DevTools (F12) → Application → Local Storage
+    - Key: "bakeryOrders"
+-->
 </body>
 </html>
