@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dreaming Eden Bakery · custom cakes & online order</title>
+    <!-- Tailwind (lightweight) + lucide icons -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* keyframes & custom gradients */
+        @keyframes floatCloud { 0% { transform: translateX(-4px) translateY(0px); } 50% { transform: translateX(5px) translateY(-5px); } 100% { transform: translateX(-4px) translateY(0px); } }
+        @keyframes spinSlow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes sparkle { 0% { opacity: 0.2; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.3); } 100% { opacity: 0.2; transform: scale(0.8); } }
+        @keyframes pulseSoft { 0%,100% { opacity: 0.4; } 50% { opacity: 0.7; } }
+        .animate-float { animation: floatCloud 5s ease-in-out infinite; }
+        .animate-spin-slow { animation: spinSlow 14s linear infinite; }
+        .animate-sparkle { animation: sparkle 2.4s ease-in-out infinite; }
+        .animate-pulse-soft { animation: pulseSoft 4s ease-in-out infinite; }
+        .text-rainbow { background: linear-gradient(135deg, #d946ef, #f472b6, #fb923c, #facc15, #4ade80, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .gradient-circle { background: linear-gradient(145deg, #e879f9, #f9a8d4, #fdba74, #fcd34d, #bef264, #7dd3fc, #c084fc); }
+        .logo-badge { background: linear-gradient(145deg, #e879f9, #f9a8d4, #fdba74, #fcd34d, #bef264, #7dd3fc, #c084fc); }
+        .card-hover { transition: all 0.2s ease; }
+        .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1); }
+        .tab-active { background: linear-gradient(135deg, #ec4899, #f97316); color: white; border: none; }
+        .glass-nav { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); background: rgba(255,255,255,0.75); } 
+        .dark .glass-nav { background: rgba(10,10,10,0.75); }
+        /* modal overlay */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 100; display: none; align-items: center; justify-content: center; }
+        .modal-container { background: white; border-radius: 2rem; max-width: 600px; width: 90%; max-height: 85vh; overflow-y: auto; padding: 2rem; box-shadow: 0 25px 50px -12px black; }
+        .dark .modal-container { background: #1f1f2e; color: #eee; }
+        /* simple reset / base */
+        body { scroll-behavior: smooth; }
+    </style>
+</head>
+<body class="bg-white dark:bg-gray-950 text-gray-800 dark:text-gray-200 font-sans antialiased">
+
+<!-- ========== MODAL: ONLINE ORDERING (CUSTOM DECO MESSAGE) ========== -->
+<div id="orderModal" class="modal-overlay">
+    <div class="modal-container relative">
+        <button id="closeModalBtn" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 dark:hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
+        <h2 class="text-3xl font-bold mb-2 text-rainbow">🍰 start your order</h2>
+        <p class="text-sm text-gray-500 mb-5">Choose product & customize — we’ll contact you for decoration details.</p>
+
+        <form id="orderForm" class="space-y-6">
+            <!-- product type -->
+            <div>
+                <label class="block font-medium mb-2">Product type *</label>
+                <select id="productType" class="w-full p-3 border rounded-xl dark:bg-gray-800 dark:border-gray-700" required>
+                    <option value="">-- select --</option>
+                    <option value="cake">🎂 Square cake (custom size/flavor)</option>
+                    <option value="cupcake_small">🧁 Cupcake small</option>
+                    <option value="cupcake_jumbo">🧁 Cupcake jumbo</option>
+                    <option value="bread">🥖 Artisan bread</option>
+                    <option value="pastry">🥐 Pastry</option>
+                </select>
+            </div>
+
+            <!-- cake dynamic fields (size, flavor, qty) -->
+            <div id="cakeOptions" class="space-y-4 hidden">
+                <div>
+                    <label class="block font-medium mb-2">Size (cm) square</label>
+                    <select id="cakeSize" class="w-full p-3 border rounded-xl dark:bg-gray-800">
+                        <option value="10">10 cm (serves 4-6)</option>
+                        <option value="15">15 cm (serves 8-10)</option>
+                        <option value="20">20 cm (serves 12-15)</option>
+                        <option value="25">25 cm (serves 18-22)</option>
+                        <option value="30">30 cm (serves 25-30)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-medium mb-2">Flavor</label>
+                    <select id="cakeFlavor" class="w-full p-3 border rounded-xl dark:bg-gray-800">
+                        <option value="vanilla">Classic vanilla</option>
+                        <option value="chocolate">Rich chocolate</option>
+                        <option value="red_velvet">Red velvet</option>
+                        <option value="carrot">Carrot walnut</option>
+                        <option value="lemon">Lemon berry</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-medium mb-2">Quantity</label>
+                    <input type="number" id="cakeQuantity" min="1" value="1" class="w-full p-3 border rounded-xl dark:bg-gray-800">
+                </div>
+            </div>
+
+            <!-- generic quantity for non‑cake -->
+            <div id="genericQuantityField" class="hidden">
+                <label class="block font-medium mb-2">Quantity</label>
+                <input type="number" id="genericQty" min="1" value="1" class="w-full p-3 border rounded-xl dark:bg-gray-800">
+            </div>
+
+            <!-- special decoration notes -->
+            <div>
+                <label class="block font-medium mb-2">Decoration ideas / special requests</label>
+                <textarea id="specialNotes" rows="3" class="w-full p-3 border rounded-xl dark:bg-gray-800" placeholder="colors, theme, inscription, topper ..."></textarea>
+            </div>
+
+            <!-- MESSAGE: fees & follow‑up (as requested) -->
+            <div class="bg-pink-50 dark:bg-pink-950/30 p-5 rounded-2xl border-l-4 border-pink-400">
+                <div class="flex items-start gap-3">
+                    <i data-lucide="message-circle" class="w-6 h-6 text-pink-500 flex-shrink-0 mt-1"></i>
+                    <p class="text-sm text-pink-800 dark:text-pink-200"><span class="font-bold">📞 Once you place this request,</span> we’ll reach out personally to discuss decorations & final design. <strong>Additional fees may apply for special/deco details</strong> – we’ll provide a quote before baking.</p>
+                </div>
+            </div>
+
+            <!-- form buttons -->
+            <div class="flex gap-3 pt-4">
+                <button type="submit" class="bg-gradient-to-r from-pink-500 to-orange-400 text-white px-6 py-3 rounded-xl font-semibold flex-1 flex items-center justify-center gap-2"><i data-lucide="check"></i> send request</button>
+                <button type="button" id="cancelModalBtn" class="border-2 border-gray-300 dark:border-gray-700 px-6 py-3 rounded-xl font-semibold flex-1">cancel</button>
+            </div>
+            <p class="text-xs text-gray-400 text-center mt-4">We’ll reply within 24h to confirm pricing & decoration.</p>
+        </form>
+    </div>
+</div>
+
+<!-- ========== FIXED NAVIGATION (multi‑tab + order button) ========== -->
+<div class="glass-nav fixed top-0 left-0 right-0 z-50 border-b border-gray-200 dark:border-gray-800">
+    <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+        <!-- logo / brand (home) -->
+        <div class="flex items-center gap-3 cursor-pointer" id="logoHome">
+            <div class="relative w-14 h-14 md:w-16 md:h-16 animate-spin-slow">
+                <div class="absolute inset-0 rounded-full blur-xl opacity-40 bg-pink-300"></div>
+                <div class="relative w-full h-full rounded-full shadow-xl flex items-center justify-center overflow-hidden logo-badge">
+                    <div class="absolute inset-2 rounded-full bg-white/30 backdrop-blur-sm"></div>
+                    <div class="absolute inset-4 rounded-full bg-white/40 backdrop-blur-md"></div>
+                    <i data-lucide="flower2" class="relative z-10 w-6 h-6 md:w-7 md:h-7 text-white drop-shadow-lg"></i>
+                </div>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold tracking-tight text-rainbow">Dreaming Eden</h1>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Bakery</p>
+            </div>
+        </div>
+
+        <!-- tab buttons -->
+        <div class="hidden md:flex items-center gap-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-2xl">
+            <button class="tab-btn px-5 py-2 rounded-xl text-sm font-medium transition-all" data-tab="home">Home</button>
+            <button class="tab-btn px-5 py-2 rounded-xl text-sm font-medium transition-all" data-tab="menu">Menu</button>
+            <button class="tab-btn px-5 py-2 rounded-xl text-sm font-medium transition-all" data-tab="about">About</button>
+            <button class="tab-btn px-5 py-2 rounded-xl text-sm font-medium transition-all" data-tab="contact">Contact</button>
+        </div>
+
+        <!-- ORDER NOW button (opens modal) -->
+        <button class="bg-gradient-to-r from-pink-500 to-orange-400 text-white px-5 py-2 rounded-lg text-sm font-medium shadow-md hover:shadow-lg transition" id="globalOrderBtn">Order Now</button>
+    </div>
+</div>
+
+<!-- ========== MAIN TAB CONTENT (4 pages) ========== -->
+<main class="pt-24 min-h-screen">
+
+    <!-- ############  HOME TAB  ############ -->
+    <section id="tab-home" class="tab-content block">
+        <!-- hero -->
+        <div class="relative overflow-hidden pb-10">
+            <div class="absolute inset-0 -z-10">
+                <div class="absolute top-20 left-10 w-72 h-72 bg-pink-300/30 rounded-full blur-3xl animate-pulse-soft"></div>
+                <div class="absolute bottom-20 right-10 w-96 h-96 bg-orange-300/30 rounded-full blur-3xl animate-pulse-soft" style="animation-delay:1s"></div>
+            </div>
+            <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-8 items-center">
+                <div class="space-y-5">
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-pink-50 dark:bg-pink-950/30">
+                        <i data-lucide="sparkles" class="w-4 h-4 text-pink-600"></i>
+                        <span class="text-sm font-medium text-pink-600">Where Dreams Rise Daily</span>
+                    </div>
+                    <h1 class="text-5xl md:text-6xl font-bold leading-tight"><span class="text-rainbow">Freshly Baked</span> <span class="block text-gray-800 dark:text-white">Every Morning</span></h1>
+                    <p class="text-gray-600 dark:text-gray-300 max-w-lg">Artisanal pastries, square cakes & cupcakes. A taste of paradise in every bite.</p>
+                    <div class="flex gap-3">
+                        <button class="bg-gradient-to-r from-pink-500 to-orange-400 text-white px-6 py-2 rounded-lg flex gap-2 items-center" id="homeViewMenuBtn"><i data-lucide="cake"></i> View Menu</button>
+                        <button class="border-2 border-gray-300 dark:border-gray-700 px-6 py-2 rounded-lg flex gap-2 items-center" id="homeVisitBtn"><i data-lucide="map-pin"></i> Visit Us</button>
+                    </div>
+                </div>
+                <!-- circle graphic -->
+                <div class="relative flex justify-center">
+                    <div class="w-64 h-64 md:w-80 md:h-80 rounded-full gradient-circle flex items-center justify-center shadow-2xl">
+                        <div class="absolute inset-6 rounded-full bg-white/20"></div>
+                        <div class="animate-spin-slow"><i data-lucide="flower2" class="w-20 h-20 text-white"></i></div>
+                        <div class="absolute bottom-10 animate-float"><i data-lucide="cloud" class="w-12 h-12 text-white/80"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- featured mini cards -->
+        <div class="max-w-7xl mx-auto px-6 py-12 grid md:grid-cols-3 gap-6">
+            <div class="bg-white dark:bg-gray-900 border rounded-2xl p-6 text-center card-hover">
+                <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center mb-4"><i data-lucide="cake" class="text-white"></i></div>
+                <h3 class="font-bold text-xl">Square Cakes</h3>
+                <p class="text-gray-500">10–30cm, custom designs</p>
+            </div>
+            <div class="bg-white dark:bg-gray-900 border rounded-2xl p-6 text-center card-hover">
+                <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center mb-4"><i data-lucide="cookie" class="text-white"></i></div>
+                <h3 class="font-bold text-xl">Cupcakes</h3>
+                <p class="text-gray-500">small & jumbo, premium</p>
+            </div>
+            <div class="bg-white dark:bg-gray-900 border rounded-2xl p-6 text-center card-hover">
+                <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center mb-4"><i data-lucide="chef-hat" class="text-white"></i></div>
+                <h3 class="font-bold text-xl">Fresh daily</h3>
+                <p class="text-gray-500">artisan quality, love</p>
+            </div>
+        </div>
+
+        <!-- quote banner -->
+        <div class="max-w-7xl mx-auto px-6 py-8">
+            <div class="bg-gradient-to-r from-pink-100 to-orange-100 dark:from-pink-950/30 dark:to-orange-950/30 rounded-3xl p-8 text-center">
+                <i data-lucide="heart" class="w-12 h-12 mx-auto text-pink-500 mb-3"></i>
+                <p class="text-2xl italic font-serif">“Every cake tells a dream”</p>
+                <p class="text-gray-600 dark:text-gray-400 mt-2">— open daily 6am–8pm —</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ############  MENU TAB  ############ -->
+    <section id="tab-menu" class="tab-content hidden">
+        <div class="max-w-7xl mx-auto px-6 py-8">
+            <div class="text-center mb-12">
+                <h2 class="text-5xl font-bold mb-2 text-rainbow">Our Menu</h2>
+                <p class="text-gray-500 dark:text-gray-400">handcrafted every day • order online</p>
+            </div>
+            <div class="grid md:grid-cols-2 gap-12">
+                <!-- left: cakes & cupcakes -->
+                <div>
+                    <h3 class="text-3xl font-semibold mb-6 flex items-center gap-2"><i data-lucide="cake" class="text-pink-500"></i>Signature Cakes</h3>
+                    <div class="space-y-5">
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Dreamy Vanilla Square (10cm)</span> <span class="text-pink-600">$24</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Chocolate fantasy (20cm)</span> <span class="text-pink-600">$38</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Red velvet square (15cm)</span> <span class="text-pink-600">$32</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Carrot walnut (25cm)</span> <span class="text-pink-600">$45</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Lemon berry (30cm)</span> <span class="text-pink-600">$55</span></div>
+                    </div>
+                    <h3 class="text-3xl font-semibold mt-12 mb-6 flex items-center gap-2"><i data-lucide="cookie" class="text-orange-500"></i>Cupcakes</h3>
+                    <div class="space-y-5">
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Classic vanilla (small)</span> <span class="text-orange-600">$3.5</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Chocolate dream (small)</span> <span class="text-orange-600">$4</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Salted caramel (jumbo)</span> <span class="text-orange-600">$6.5</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Strawberry bliss (jumbo)</span> <span class="text-orange-600">$7</span></div>
+                    </div>
+                </div>
+                <!-- right: breads & pastries -->
+                <div>
+                    <h3 class="text-3xl font-semibold mb-6 flex items-center gap-2"><i data-lucide="chef-hat" class="text-amber-500"></i>Artisan Breads</h3>
+                    <div class="space-y-5">
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Sourdough loaf</span> <span class="text-amber-600">$7</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Baguette</span> <span class="text-amber-600">$5</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Cinnamon rolls (4pcs)</span> <span class="text-amber-600">$9</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Butter croissant</span> <span class="text-amber-600">$3.5</span></div>
+                    </div>
+                    <h3 class="text-3xl font-semibold mt-12 mb-6 flex items-center gap-2"><i data-lucide="sparkles" class="text-yellow-500"></i>Seasonal</h3>
+                    <div class="bg-pink-50 dark:bg-pink-950/20 p-6 rounded-3xl">
+                        <p class="font-medium">🍓 Berry cheesecake square – $48</p>
+                        <p class="font-medium mt-2">🎃 Pumpkin cupcake – $4.5</p>
+                    </div>
+                </div>
+            </div>
+            <!-- order call to action (opens modal) -->
+            <div class="mt-16 text-center p-6 bg-gray-100 dark:bg-gray-800 rounded-3xl">
+                <i data-lucide="truck" class="w-8 h-8 mx-auto text-pink-500"></i>
+                <p class="text-lg">Custom sizes & catering – <button class="text-pink-600 underline" id="menuContactBtn">order here</button></p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ############  ABOUT TAB  ############ -->
+    <section id="tab-about" class="tab-content hidden">
+        <div class="max-w-7xl mx-auto px-6 py-8">
+            <div class="grid md:grid-cols-2 gap-14 items-center">
+                <div>
+                    <div class="relative w-full aspect-square rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-br from-pink-200 via-orange-200 to-yellow-200 dark:from-pink-900/30 dark:via-orange-900/30 dark:to-yellow-900/30 flex items-center justify-center">
+                        <i data-lucide="heart" class="w-32 h-32 text-white/70"></i>
+                    </div>
+                </div>
+                <div class="space-y-6">
+                    <h2 class="text-5xl font-bold">Baked with Love <span class="text-rainbow">Since 2020</span></h2>
+                    <p class="text-lg text-gray-600 dark:text-gray-300">We rise at 4am to create beautiful square cakes and cupcakes using organic flour, european butter, and local fruits.</p>
+                    <p class="text-lg text-gray-600 dark:text-gray-300">Our team of six pastry artists pours love into every order — from a single cupcake to a 30cm wedding cake.</p>
+                    <div class="flex flex-wrap gap-5 pt-4">
+                        <div><i data-lucide="flask-conical" class="inline w-5 h-5 text-pink-500"></i> no preservatives</div>
+                        <div><i data-lucide="leaf" class="inline w-5 h-5 text-green-500"></i> organic whenever possible</div>
+                    </div>
+                </div>
+            </div>
+            <!-- team -->
+            <div class="mt-20">
+                <h3 class="text-3xl font-bold text-center mb-10">meet the dreamers</h3>
+                <div class="grid sm:grid-cols-3 gap-6">
+                    <div class="text-center"><div class="w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-pink-300 to-orange-300 flex items-center justify-center mb-3"><i data-lucide="chef-hat" class="w-12 h-12 text-white"></i></div><p class="font-semibold">Elena</p><p class="text-sm text-gray-500">head pastry</p></div>
+                    <div class="text-center"><div class="w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-orange-300 to-amber-300 flex items-center justify-center mb-3"><i data-lucide="cake" class="w-12 h-12 text-white"></i></div><p class="font-semibold">Mateo</p><p class="text-sm text-gray-500">cake artist</p></div>
+                    <div class="text-center"><div class="w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-amber-300 to-yellow-300 flex items-center justify-center mb-3"><i data-lucide="sparkles" class="w-12 h-12 text-white"></i></div><p class="font-semibold">Lina</p><p class="text-sm text-gray-500">design & magic</p></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ############  CONTACT TAB  ############ -->
+    <section id="tab-contact" class="tab-content hidden">
+        <div class="max-w-7xl mx-auto px-6 py-8">
+            <div class="text-center mb-14">
+                <h2 class="text-5xl font-bold mb-2 text-rainbow">Visit or say hello</h2>
+                <p class="text-gray-500 dark:text-gray-400">we’d love to hear from you</p>
+            </div>
+            <div class="grid md:grid-cols-3 gap-7">
+                <div class="bg-white dark:bg-gray-900 border rounded-2xl p-8 text-center card-hover">
+                    <div class="w-14 h-14 mx-auto rounded-full bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center mb-4"><i data-lucide="map-pin" class="text-white"></i></div>
+                    <h3 class="font-bold text-xl">Location</h3><p class="text-gray-500 mt-2">123 Paradise Lane<br>Dreamville, DV 12345</p>
+                </div>
+                <div class="bg-white dark:bg-gray-900 border rounded-2xl p-8 text-center card-hover">
+                    <div class="w-14 h-14 mx-auto rounded-full bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center mb-4"><i data-lucide="phone" class="text-white"></i></div>
+                    <h3 class="font-bold text-xl">Phone</h3><p class="text-gray-500 mt-2">(555) 123-4567<br>call or text</p>
+                </div>
+                <div class="bg-white dark:bg-gray-900 border rounded-2xl p-8 text-center card-hover">
+                    <div class="w-14 h-14 mx-auto rounded-full bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center mb-4"><i data-lucide="mail" class="text-white"></i></div>
+                    <h3 class="font-bold text-xl">Email</h3><p class="text-gray-500 mt-2">hello@dreamingeden.com<br>reply within 24h</p>
+                </div>
+            </div>
+            <!-- hours + social -->
+            <div class="mt-16 bg-gray-100 dark:bg-gray-800 rounded-3xl p-8 max-w-2xl mx-auto text-center">
+                <h4 class="font-bold text-2xl mb-4">🍰 hours</h4>
+                <p class="mb-2">Mon–Fri: 6am–8pm | Sat: 7am–9pm | Sun: 7am–7pm</p>
+                <div class="flex justify-center gap-4 mt-6">
+                    <a href="#" class="bg-pink-500 p-3 rounded-full text-white hover:scale-110 transition"><i data-lucide="instagram"></i></a>
+                    <a href="#" class="bg-orange-500 p-3 rounded-full text-white hover:scale-110 transition"><i data-lucide="facebook"></i></a>
+                    <a href="#" class="bg-amber-500 p-3 rounded-full text-white hover:scale-110 transition"><i data-lucide="twitter"></i></a>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- ========== FOOTER ========== -->
+<footer class="bg-gray-100/80 dark:bg-gray-900/80 border-t border-gray-200 dark:border-gray-800 py-10 px-6 mt-12">
+    <div class="max-w-7xl mx-auto text-center text-sm text-gray-500 dark:text-gray-400">
+        <p>© 2025 Dreaming Eden Bakery — Artisan square cakes & cupcakes. Made with ❤️ and flour.</p>
+    </div>
+</footer>
+
+<!-- ========== DEPLOYMENT‑READY JAVASCRIPT ========== -->
+<script>
+    (function() {
+        // ---------- MODAL ----------
+        const modal = document.getElementById('orderModal');
+        const openModalBtns = [
+            document.getElementById('globalOrderBtn'),
+            document.getElementById('menuContactBtn'),
+            document.getElementById('homeViewMenuBtn')
+        ].filter(btn => btn);
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const cancelModalBtn = document.getElementById('cancelModalBtn');
+        const productType = document.getElementById('productType');
+        const cakeOptions = document.getElementById('cakeOptions');
+        const genericQtyField = document.getElementById('genericQuantityField');
+        const orderForm = document.getElementById('orderForm');
+        const homeVisitBtn = document.getElementById('homeVisitBtn');
+
+        // open modal
+        function openOrderModal() {
+            if (modal) modal.style.display = 'flex';
+            lucide.createIcons();
+        }
+        openModalBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (btn.id === 'homeViewMenuBtn') switchTab('menu');  // go to menu tab
+                openOrderModal();
+            });
+        });
+
+        // home visit -> contact tab
+        if (homeVisitBtn) homeVisitBtn.addEventListener('click', () => switchTab('contact'));
+
+        // close modal
+        function closeModal() { if (modal) modal.style.display = 'none'; }
+        if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
+        if (cancelModalBtn) cancelModalBtn.addEventListener('click', closeModal);
+        if (modal) modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+        // product type toggle
+        if (productType) {
+            productType.addEventListener('change', function() {
+                const val = this.value;
+                if (val === 'cake') {
+                    cakeOptions?.classList.remove('hidden');
+                    genericQtyField?.classList.add('hidden');
+                } else if (['cupcake_small','cupcake_jumbo','bread','pastry'].includes(val)) {
+                    cakeOptions?.classList.add('hidden');
+                    genericQtyField?.classList.remove('hidden');
+                } else {
+                    cakeOptions?.classList.add('hidden');
+                    genericQtyField?.classList.add('hidden');
+                }
+            });
+        }
+
+        // form submit (demo + deco message)
+        if (orderForm) {
+            orderForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const type = productType?.value;
+                if (!type) { alert('Please select a product'); return; }
+                let details = `🍰 Order request:\nProduct: ${type}`;
+                if (type === 'cake') {
+                    const size = document.getElementById('cakeSize')?.value || '?';
+                    const flavor = document.getElementById('cakeFlavor')?.value || '?';
+                    const qty = document.getElementById('cakeQuantity')?.value || '1';
+                    details += `\nSize: ${size}cm\nFlavor: ${flavor}\nQuantity: ${qty}`;
+                } else {
+                    const qty = document.getElementById('genericQty')?.value || '1';
+                    details += `\nQuantity: ${qty}`;
+                }
+                const notes = document.getElementById('specialNotes')?.value;
+                if (notes) details += `\nSpecial requests: ${notes}`;
+                
+                alert(`✨ ${details}\n\n📞 We’ll contact you within 24h to discuss decorations & final pricing. Additional fees may apply for special decorations.`);
+                closeModal();
+                orderForm.reset();
+                cakeOptions?.classList.add('hidden');
+                genericQtyField?.classList.add('hidden');
+            });
+        }
+
+        // ---------- TAB SWITCHING ----------
+        const tabs = document.querySelectorAll('.tab-btn');
+        const contents = {
+            home: document.getElementById('tab-home'),
+            menu: document.getElementById('tab-menu'),
+            about: document.getElementById('tab-about'),
+            contact: document.getElementById('tab-contact')
+        };
+        window.switchTab = function(tabId) {
+            Object.values(contents).forEach(s => s?.classList.add('hidden'));
+            if (contents[tabId]) contents[tabId].classList.remove('hidden');
+            tabs.forEach(btn => {
+                btn.classList.remove('tab-active', 'bg-gradient-to-r', 'from-pink-500', 'to-orange-400', 'text-white');
+                btn.classList.add('bg-transparent', 'text-gray-600', 'dark:text-gray-300');
+                if (btn.dataset.tab === tabId) {
+                    btn.classList.add('tab-active', 'bg-gradient-to-r', 'from-pink-500', 'to-orange-400', 'text-white');
+                    btn.classList.remove('bg-transparent', 'text-gray-600', 'dark:text-gray-300');
+                }
+            });
+            window.location.hash = tabId;
+        };
+
+        tabs.forEach(btn => btn.addEventListener('click', (e) => { e.preventDefault(); switchTab(btn.dataset.tab); }));
+        document.getElementById('logoHome')?.addEventListener('click', () => switchTab('home'));
+
+        // initial tab from hash
+        const initial = window.location.hash.replace('#','') || 'home';
+        if (['home','menu','about','contact'].includes(initial)) switchTab(initial);
+        else switchTab('home');
+
+        // re-run lucide
+        lucide.createIcons();
+    })();
+</script>
+<!-- final icon render -->
+<script>setTimeout(() => lucide?.createIcons(), 100);</script>
+</body>
+</html>
