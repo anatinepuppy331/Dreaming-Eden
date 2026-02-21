@@ -79,13 +79,13 @@
             <!-- cake dynamic fields (size, flavor, qty) -->
             <div id="cakeOptions" class="space-y-4 hidden">
                 <div>
-                    <label class="block font-medium mb-1 text-sm">Size (cm) square</label>
+                    <label class="block font-medium mb-1 text-sm">Size (cm) Round</label>
                     <select id="cakeSize" class="w-full p-3 border rounded-xl dark:bg-gray-800">
-                        <option value="10">10 cm (serves 4-6)</option>
+                        <option value="10">10 cm (serves 2-4)</option>
                         <option value="15">15 cm (serves 8-10)</option>
-                        <option value="20">20 cm (serves 12-15)</option>
-                        <option value="25">25 cm (serves 18-22)</option>
-                        <option value="30">30 cm (serves 25-30)</option>
+                        <option value="20">20 cm (serves 12-16)</option>
+                        <option value="23">23 cm (serves 16-20)</option>
+                        <option value="25">25 cm (serves 21-38)</option>
                     </select>
                 </div>
                 <div>
@@ -236,32 +236,47 @@
                 <div>
                     <h3 class="text-3xl font-semibold mb-6 flex items-center gap-2"><i data-lucide="cake" class="text-pink-500"></i>Signature Cakes</h3>
                     <div class="space-y-5">
-                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Dreamy Vanilla Square (10cm)</span> <span class="text-pink-600">$24</span></div>
-                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Chocolate fantasy (20cm)</span> <span class="text-pink-600">$38</span></div>
-                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Red velvet square (15cm)</span> <span class="text-pink-600">$32</span></div>
-                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Carrot walnut (25cm)</span> <span class="text-pink-600">$45</span></div>
-                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Lemon berry (30cm)</span> <span class="text-pink-600">$55</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Dreamy Vanilla </span> <span class="text-pink-600">P200</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Chocolate fantasy </span> <span class="text-pink-600">P250</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Red velvet square </span> <span class="text-pink-600">P250</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Carrot walnut </span> <span class="text-pink-600">P45</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Lemon berry </span> <span class="text-pink-600">P55</span></div>
                     </div>
-                    <h3 class="text-3xl font-semibold mt-12 mb-6 flex items-center gap-2"><i data-lucide="cookie" class="text-orange-500"></i>Cupcakes</h3>
+                    <h3 class="text-3xl font-semibold mt-12 mb-6 flex items-center gap-2"><i data-lucide="cookie" class="text-orange-500"></i>Cupcakes (Small)</h3>
                     <div class="space-y-5">
-                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Classic vanilla (small)</span> <span class="text-orange-600">$3.5</span></div>
-                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Chocolate dream (small)</span> <span class="text-orange-600">$4</span></div>
-                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Salted caramel (jumbo)</span> <span class="text-orange-600">$6.5</span></div>
-                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Strawberry bliss (jumbo)</span> <span class="text-orange-600">$7</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Classic vanilla </span> <span class="text-orange-600">P3.5</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Chocolate dream </span> <span class="text-orange-600">P4</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Salted caramel </span> <span class="text-orange-600">P6.5</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Strawberry bliss </span> <span class="text-orange-600">7</span></div>
+                    </div>
+                    <div>
+                    <h3 class="text-3xl font-semibold mb-6 flex items-center gap-2"><i data-lucide="cake" class="text-pink-500"></i>TRAY Cakes</h3>
+                    <div class="space-y-5">
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Dreamy Vanilla </span> <span class="text-pink-600">P20</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Chocolate fantasy</span> <span class="text-pink-600">P25</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Red velvet square </span> <span class="text-pink-600">P25</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Carrot walnut </span> <span class="text-pink-600">P30</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Lemon berry </span> <span class="text-pink-600">P30</span></div>
+                    </div>
+                    <h3 class="text-3xl font-semibold mt-12 mb-6 flex items-center gap-2"><i data-lucide="cookie" class="text-orange-500"></i>Cupcakes (Jumbo</h3>
+                    <div class="space-y-5">
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Classic vanilla </span> <span class="text-orange-600">P12</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Chocolate dream</span> <span class="text-orange-600">P15</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Salted caramel</span> <span class="text-orange-600">P16</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Strawberry bliss </span> <span class="text-orange-600">P10</span></div>
                     </div>
                 </div>
                 <div>
                     <h3 class="text-3xl font-semibold mb-6 flex items-center gap-2"><i data-lucide="chef-hat" class="text-amber-500"></i>Artisan Breads</h3>
                     <div class="space-y-5">
-                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Sourdough loaf</span> <span class="text-amber-600">$7</span></div>
-                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Baguette</span> <span class="text-amber-600">$5</span></div>
-                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Cinnamon rolls (4pcs)</span> <span class="text-amber-600">$9</span></div>
-                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Butter croissant</span> <span class="text-amber-600">$3.5</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Sourdough loaf</span> <span class="text-amber-600">P17</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Baguette</span> <span class="text-amber-600">P15</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Cinnamon rolls (4pcs)</span> <span class="text-amber-600">P15</span></div>
                     </div>
                     <h3 class="text-3xl font-semibold mt-12 mb-6 flex items-center gap-2"><i data-lucide="sparkles" class="text-yellow-500"></i>Seasonal</h3>
                     <div class="bg-pink-50 dark:bg-pink-950/20 p-6 rounded-3xl">
-                        <p class="font-medium">🍓 Berry cheesecake square – $48</p>
-                        <p class="font-medium mt-2">🎃 Pumpkin cupcake – $4.5</p>
+                        <p class="font-medium">🍓 Berry cheesecake square – P48</p>
+                        <p class="font-medium mt-2">🎃 Pumpkin cupcake – P4</p>
                     </div>
                 </div>
             </div>
