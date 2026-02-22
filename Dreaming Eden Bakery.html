@@ -438,16 +438,16 @@
 <script>
     (function() {
         // ========== APPRWRITE CONFIGURATION - UPDATE THESE VALUES ==========
-        const APPRWRITE_ENDPOINT = 'https://[YOUR_PROJECT_ID].appwrite.io/v1'; 
-        const APPRWRITE_PROJECT = '[YOUR_PROJECT_ID]'; 
+        const APPRWRITE_ENDPOINT = 'https://dreaming-eden-personal-projects.appwrite.network/v1'; 
+        const APPRWRITE_PROJECT = 69983f5000112469fe1a'; 
         const DATABASE_ID = '69984000000355b27bc9'; 
-        const COLLECTION_ID = '[YOUR_COLLECTION_ID]'; 
+        
 
         // Validate credentials - if they contain brackets, show error and block orders
         const hasValidCredentials = !APPRWRITE_ENDPOINT.includes('[YOUR') && 
                                     !APPRWRITE_PROJECT.includes('[YOUR') &&
                                     !DATABASE_ID.includes('[YOUR') &&
-                                    !COLLECTION_ID.includes('[YOUR');
+                                   
 
         if (!hasValidCredentials) {
             console.error('❌ CRITICAL: Appwrite credentials not configured. Orders cannot be placed.');
