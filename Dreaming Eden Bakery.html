@@ -67,6 +67,7 @@
             font-size: 0.875rem;
             margin-top: 0.5rem;
             text-align: center;
+            display: none;
         }
     </style>
 </head>
@@ -308,11 +309,11 @@
 
                     <h3 class="text-3xl font-semibold mt-12 mb-6 flex items-center gap-2"><i data-lucide="square" class="text-pink-500"></i>Tray Cakes</h3>
                     <div class="space-y-5">
-                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Dreamy Vanilla</span> <span class="text-pink-600">P20</span></div>
-                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Chocolate Fantasy</span> <span class="text-pink-600">P25</span></div>
-                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Red Velvet</span> <span class="text-pink-600">P25</span></div>
-                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Carrot Walnut</span> <span class="text-pink-600">P30</span></div>
-                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Lemon Berry</span> <span class="text-pink-600">P30</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Dreamy Vanilla </span> <span class="text-pink-600">P20 </span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Chocolate Fantasy </span> <span class="text-pink-600">P25 </span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Red Velvet </span> <span class="text-pink-600">P25 </span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Carrot Walnut </span> <span class="text-pink-600">P30 </span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Lemon Berry </span> <span class="text-pink-600">P30 </span></div>
                     </div>
                 </div>
 
@@ -336,8 +337,8 @@
 
                     <h3 class="text-3xl font-semibold mt-12 mb-6 flex items-center gap-2"><i data-lucide="chef-hat" class="text-amber-500"></i>Artisan Breads</h3>
                     <div class="space-y-5">
-                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Sourdough Loaf</span> <span class="text-amber-600">P10</span></div>
-                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Baguette</span> <span class="text-amber-600">P10</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Sourdough Loaf</span> <span class="text-amber-600">P10 </span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Baguette</span> <span class="text-amber-600">P10 </span></div>
                         <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Cinnamon Rolls (4pcs)</span> <span class="text-amber-600">P14</span></div>
                         <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Butter Croissant</span> <span class="text-amber-600">P13.5</span></div>
                     </div>
@@ -439,15 +440,15 @@
     (function() {
         // ========== APPRWRITE CONFIGURATION - UPDATE THESE VALUES ==========
         const APPRWRITE_ENDPOINT = 'https://dreaming-eden-personal-projects.appwrite.network/v1'; 
-        const APPRWRITE_PROJECT = 69983f5000112469fe1a'; 
+        const APPRWRITE_PROJECT = '69983f5000112469fe1a'; 
         const DATABASE_ID = '69984000000355b27bc9'; 
+        const COLLECTION_ID = '69984002003ba2be8a14'; // ADDED MISSING COLLECTION_ID
         
-
         // Validate credentials - if they contain brackets, show error and block orders
         const hasValidCredentials = !APPRWRITE_ENDPOINT.includes('[YOUR') && 
                                     !APPRWRITE_PROJECT.includes('[YOUR') &&
                                     !DATABASE_ID.includes('[YOUR') &&
-                                   
+                                    !COLLECTION_ID.includes('[YOUR'); // ADDED COLLECTION_ID validation
 
         if (!hasValidCredentials) {
             console.error('❌ CRITICAL: Appwrite credentials not configured. Orders cannot be placed.');
@@ -485,7 +486,7 @@
             document.getElementById('globalOrderBtn'),
             document.getElementById('menuContactBtn'),
             document.getElementById('homeViewMenuBtn')
-        ].filter(btn => btn);
+        ].filter(btn => btn !== null); // FIXED: Filter out null values properly
         const closeModalBtn = document.getElementById('closeModalBtn');
         const cancelModalBtn = document.getElementById('cancelModalBtn');
         const productType = document.getElementById('productType');
@@ -500,16 +501,23 @@
         // open modal
         function openOrderModal() {
             if (modal) modal.style.display = 'flex';
-            if (formError) formError.style.display = 'none';
-            lucide.createIcons();
+            if (formError) {
+                formError.style.display = 'none';
+                formError.textContent = ''; // Clear error message
+            }
+            if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                lucide.createIcons();
+            }
         }
 
         openModalBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                if (btn.id === 'homeViewMenuBtn') switchTab('menu');
-                openOrderModal();
-            });
+            if (btn) { // FIXED: Check if btn exists before adding listener
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (btn.id === 'homeViewMenuBtn') switchTab('menu');
+                    openOrderModal();
+                });
+            }
         });
 
         // home visit -> contact tab
@@ -548,7 +556,10 @@
                 e.preventDefault();
                 
                 // Clear previous error
-                if (formError) formError.style.display = 'none';
+                if (formError) {
+                    formError.style.display = 'none';
+                    formError.textContent = '';
+                }
                 
                 // Check if Appwrite is ready
                 if (!appwriteReady || !databases) {
@@ -565,7 +576,10 @@
                 const type = productType?.value;
 
                 if (!name || !email || !type) {
-                    alert('Please fill in name, email and product type');
+                    if (formError) {
+                        formError.style.display = 'block';
+                        formError.textContent = 'Please fill in name, email and product type';
+                    }
                     return;
                 }
 
@@ -601,7 +615,7 @@
                     // Save to Appwrite (no fallback)
                     const response = await databases.createDocument(
                         DATABASE_ID,
-                        COLLECTION_ID,
+                        COLLECTION_ID, // FIXED: This was missing before
                         'unique()',
                         orderData
                     );
@@ -693,10 +707,18 @@
         else switchTab('home');
 
         // Refresh icons
-        lucide.createIcons();
+        if (typeof lucide !== 'undefined' && lucide.createIcons) {
+            lucide.createIcons();
+        }
     })();
 </script>
 <!-- ensure icons after any dynamic content -->
-<script>setTimeout(() => lucide?.createIcons(), 150);</script>
+<script>
+    setTimeout(() => {
+        if (typeof lucide !== 'undefined' && lucide.createIcons) {
+            lucide.createIcons();
+        }
+    }, 150);
+</script>
 </body>
 </html>
