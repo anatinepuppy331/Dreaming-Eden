@@ -35,7 +35,7 @@
         /* loading spinner */
         .spinner { border: 3px solid #f3f3f3; border-top: 3px solid #ec4899; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; display: inline-block; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        /* back button */
+        /* back button - hidden by default */
         .back-home-btn {
             position: fixed;
             bottom: 2rem;
@@ -50,7 +50,7 @@
             z-index: 90;
             cursor: pointer;
             transition: all 0.2s;
-            display: flex;
+            display: none;
             align-items: center;
             gap: 0.5rem;
         }
@@ -58,11 +58,21 @@
             transform: scale(1.05);
             box-shadow: 0 20px 35px rgba(236, 72, 153, 0.6);
         }
+        .back-home-btn.visible {
+            display: flex;
+        }
+        /* error message */
+        .error-message {
+            color: #dc2626;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            text-align: center;
+        }
     </style>
 </head>
 <body class="bg-white dark:bg-gray-950 text-gray-800 dark:text-gray-200 font-sans antialiased">
 
-<!-- ========== BACK TO HOME BUTTON ========== -->
+<!-- ========== BACK TO HOME BUTTON (appears only on menu tab) ========== -->
 <div class="back-home-btn" id="backToHomeBtn">
     <i data-lucide="home" class="w-5 h-5"></i>
     <span>Back to Home</span>
@@ -73,7 +83,8 @@
     <div class="modal-container relative">
         <button id="closeModalBtn" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 dark:hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
         <h2 class="text-3xl font-bold mb-2 text-rainbow">🍰 place your order</h2>
-        <p class="text-sm text-gray-500 mb-5">We'll save your order and contact you within 24h.</p>
+        <p class="text-sm text-gray-500 mb-5">Your order will be saved directly to our database.</p>
+        <p class="text-sm text-gray-500 mb-5">Disclaimer a 50% deposit is required for all round cake orders upon completion of details .</p>
 
         <form id="orderForm" class="space-y-5">
             <!-- CUSTOMER INFO -->
@@ -92,7 +103,7 @@
                 <input type="tel" id="customerPhone" class="w-full p-3 border rounded-xl dark:bg-gray-800 dark:border-gray-700" placeholder="(+267) 73 949 124">
             </div>
 
-            <!-- product type - FIXED: removed duplicate values -->
+            <!-- product type -->
             <div>
                 <label class="block font-medium mb-1 text-sm">Product type *</label>
                 <select id="productType" class="w-full p-3 border rounded-xl dark:bg-gray-800 dark:border-gray-700" required>
@@ -106,16 +117,16 @@
                 </select>
             </div>
 
-            <!-- cake dynamic fields (size, flavor, qty) - for round cakes -->
+            <!-- round cake dynamic fields -->
             <div id="cakeOptions" class="space-y-4 hidden">
                 <div>
                     <label class="block font-medium mb-1 text-sm">Size (cm) Round</label>
                     <select id="cakeSize" class="w-full p-3 border rounded-xl dark:bg-gray-800">
-                        <option value="10">10 cm (serves 2-4) - P200</option>
-                        <option value="15">15 cm (serves 8-10) - P250</option>
-                        <option value="20">20 cm (serves 12-16) - P300</option>
-                        <option value="23">23 cm (serves 16-20) - P350</option>
-                        <option value="25">25 cm (serves 21-28) - P400</option>
+                        <option value="10">10 cm (serves 4-6) - P200-250</option>
+                        <option value="15">15 cm (serves 8-10) - P250-300</option>
+                        <option value="20">20 cm (serves 12-15) - P300-350</option>
+                        <option value="23">23 cm (serves 16-20) - P350-400</option>
+                        <option value="25">25 cm (serves 21-28) - P400-450</option>
                     </select>
                 </div>
                 <div>
@@ -171,6 +182,9 @@
                     <p class="text-xs text-pink-800 dark:text-pink-200"><span class="font-bold">📞 Once ordered,</span> we'll reach out to discuss decorations & final design. <strong>Extra fees may apply for special deco</strong> – we'll quote before baking.</p>
                 </div>
             </div>
+
+            <!-- error display -->
+            <div id="formError" class="error-message"></div>
 
             <!-- form buttons with loading state -->
             <div class="flex gap-3 pt-2">
@@ -232,7 +246,7 @@
                         <span class="text-sm font-medium text-pink-600">Where Dreams Rise Daily</span>
                     </div>
                     <h1 class="text-5xl md:text-6xl font-bold leading-tight"><span class="text-rainbow">Freshly Baked</span> <span class="block text-gray-800 dark:text-white">Every Morning</span></h1>
-                    <p class="text-gray-600 dark:text-gray-300 max-w-lg">Artisanal pastries, round & tray cakes, cupcakes. A taste of paradise in every bite.</p>
+                    <p class="text-gray-600 dark:text-gray-300 max-w-lg">Artisanal pastries, round cakes, tray cakes & cupcakes. A taste of paradise in every bite.</p>
                     <div class="flex gap-3">
                         <button class="bg-gradient-to-r from-pink-500 to-orange-400 text-white px-6 py-2 rounded-lg flex gap-2 items-center" id="homeViewMenuBtn"><i data-lucide="cake"></i> View Menu</button>
                         <button class="border-2 border-gray-300 dark:border-gray-700 px-6 py-2 rounded-lg flex gap-2 items-center" id="homeVisitBtn"><i data-lucide="map-pin"></i> Visit Us</button>
@@ -254,12 +268,12 @@
                 <p class="text-gray-500">10–25cm, custom designs</p>
             </div>
             <div class="bg-white dark:bg-gray-900 border rounded-2xl p-6 text-center card-hover">
-                <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center mb-4"><i data-lucide="cookie" class="text-white"></i></div>
-                <h3 class="font-bold text-xl">Tray Cake squares</h3>
+                <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center mb-4"><i data-lucide="square" class="text-white"></i></div>
+                <h3 class="font-bold text-xl">Tray Cakes</h3>
                 <p class="text-gray-500">various flavors</p>
             </div>
             <div class="bg-white dark:bg-gray-900 border rounded-2xl p-6 text-center card-hover">
-                <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center mb-4"><i data-lucide="chef-hat" class="text-white"></i></div>
+                <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center mb-4"><i data-lucide="cookie" class="text-white"></i></div>
                 <h3 class="font-bold text-xl">Cupcakes</h3>
                 <p class="text-gray-500">small & jumbo, premium</p>
             </div>
@@ -273,7 +287,7 @@
         </div>
     </section>
 
-    <!-- MENU TAB - FIXED: Properly structured with all items -->
+    <!-- MENU TAB -->
     <section id="tab-menu" class="tab-content hidden">
         <div class="max-w-7xl mx-auto px-6 py-8">
             <div class="text-center mb-12">
@@ -285,16 +299,14 @@
                 <div>
                     <h3 class="text-3xl font-semibold mb-6 flex items-center gap-2"><i data-lucide="cake" class="text-pink-500"></i>Round Cakes</h3>
                     <div class="space-y-5">
-                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Dreamy Vanilla (10cm)</span> <span class="text-pink-600">P200</span></div>
-                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Chocolate Fantasy (15cm)</span> <span class="text-pink-600">P250</span></div>
-                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Red Velvet (15cm)</span> <span class="text-pink-600">P250</span></div>
-                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Carrot Walnut (20cm)</span> <span class="text-pink-600">P300</span></div>
-                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Lemon Berry (20cm)</span> <span class="text-pink-600">P300</span></div>
-                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Custom Round (23cm)</span> <span class="text-pink-600">P350</span></div>
-                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Custom Round (25cm)</span> <span class="text-pink-600">P400</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Dreamy Vanilla </span> <span class="text-pink-600">P200</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Chocolate Fantasy </span> <span class="text-pink-600">P250</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Red Velvet </span> <span class="text-pink-600">P250</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Carrot Walnut </span> <span class="text-pink-600">P300</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Lemon Berry </span> <span class="text-pink-600">P300</span></div>
                     </div>
 
-                    <h3 class="text-3xl font-semibold mt-12 mb-6 flex items-center gap-2"><i data-lucide="cake" class="text-pink-500"></i>Tray Cake squares</h3>
+                    <h3 class="text-3xl font-semibold mt-12 mb-6 flex items-center gap-2"><i data-lucide="square" class="text-pink-500"></i>Tray Cakes</h3>
                     <div class="space-y-5">
                         <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Dreamy Vanilla</span> <span class="text-pink-600">P20</span></div>
                         <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Chocolate Fantasy</span> <span class="text-pink-600">P25</span></div>
@@ -308,15 +320,15 @@
                 <div>
                     <h3 class="text-3xl font-semibold mb-6 flex items-center gap-2"><i data-lucide="cookie" class="text-orange-500"></i>Cupcakes (Small)</h3>
                     <div class="space-y-5">
-                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Classic Vanilla</span> <span class="text-orange-600">P3,5</span></div>
-                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Chocolate Dream</span> <span class="text-orange-600">P5</span></div>
-                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Salted Caramel</span> <span class="text-orange-600">P4</span></div>
-                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Strawberry Bliss</span> <span class="text-orange-600">P3,5</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Classic Vanilla</span> <span class="text-orange-600">P3.5</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Chocolate Dream</span> <span class="text-orange-600">P4</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Salted Caramel</span> <span class="text-orange-600">P6.5</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Strawberry Bliss</span> <span class="text-orange-600">P7</span></div>
                     </div>
 
                     <h3 class="text-3xl font-semibold mt-12 mb-6 flex items-center gap-2"><i data-lucide="cookie" class="text-orange-500"></i>Cupcakes (Jumbo)</h3>
                     <div class="space-y-5">
-                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Classic Vanilla</span> <span class="text-orange-600">P12</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Classic Vanilla</span> <span class="text-orange-600">P10</span></div>
                         <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Chocolate Dream</span> <span class="text-orange-600">P15</span></div>
                         <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Salted Caramel</span> <span class="text-orange-600">P15</span></div>
                         <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Strawberry Bliss</span> <span class="text-orange-600">P10</span></div>
@@ -324,16 +336,16 @@
 
                     <h3 class="text-3xl font-semibold mt-12 mb-6 flex items-center gap-2"><i data-lucide="chef-hat" class="text-amber-500"></i>Artisan Breads</h3>
                     <div class="space-y-5">
-                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Sourdough Loaf</span> <span class="text-amber-600">P25</span></div>
-                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Baguette</span> <span class="text-amber-600">P15</span></div>
-                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Cinnamon Rolls (4pcs)</span> <span class="text-amber-600">P15</span></div>
-                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Butter Croissant</span> <span class="text-amber-600">P20</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Sourdough Loaf</span> <span class="text-amber-600">P10</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Baguette</span> <span class="text-amber-600">P10</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Cinnamon Rolls (4pcs)</span> <span class="text-amber-600">P14</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">Butter Croissant</span> <span class="text-amber-600">P13.5</span></div>
                     </div>
 
                     <h3 class="text-3xl font-semibold mt-12 mb-6 flex items-center gap-2"><i data-lucide="sparkles" class="text-yellow-500"></i>Seasonal</h3>
                     <div class="bg-pink-50 dark:bg-pink-950/20 p-6 rounded-3xl">
-                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">🍓 Berry Cheesecake Square</span> <span class="text-pink-600">P280</span></div>
-                        <div class="flex justify-between border-b border-dashed pb-2 mt-2"><span class="font-medium">🎃 Pumpkin Spice Cupcake</span> <span class="text-pink-600">P45</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2"><span class="font-medium">🍓 Berry Cheesecake Square</span> <span class="text-pink-600">P40</span></div>
+                        <div class="flex justify-between border-b border-dashed pb-2 mt-2"><span class="font-medium">🎃 Pumpkin Spice Cupcake</span> <span class="text-pink-600">P35</span></div>
                     </div>
                 </div>
             </div>
@@ -344,7 +356,7 @@
         </div>
     </section>
 
-    <!-- ABOUT TAB - FIXED: team section structure -->
+    <!-- ABOUT TAB -->
     <section id="tab-about" class="tab-content hidden">
         <div class="max-w-7xl mx-auto px-6 py-8">
             <div class="grid md:grid-cols-2 gap-14 items-center">
@@ -355,7 +367,7 @@
                 </div>
                 <div class="space-y-6">
                     <h2 class="text-5xl font-bold">Baked with Love <span class="text-rainbow">Since 2020</span></h2>
-                    <p class="text-lg text-gray-600 dark:text-gray-300">We rise at 4am to create beautiful round cakes, tray cakes and cupcakes using organic flour, organic butter, and local fruits.</p>
+                    <p class="text-lg text-gray-600 dark:text-gray-300">We rise at 4am to create beautiful round cakes, tray cakes and cupcakes using organic flour, european butter, and local fruits.</p>
                     <p class="text-lg text-gray-600 dark:text-gray-300">Our team of pastry artists pours love into every order — from a single cupcake to a 30cm cake for all occasions.</p>
                     <div class="flex flex-wrap gap-5 pt-4">
                         <div><i data-lucide="flask-conical" class="inline w-5 h-5 text-pink-500"></i> no preservatives</div>
@@ -378,7 +390,7 @@
         </div>
     </section>
 
-    <!-- CONTACT TAB - FIXED: location and contact details -->
+    <!-- CONTACT TAB -->
     <section id="tab-contact" class="tab-content hidden">
         <div class="max-w-7xl mx-auto px-6 py-8">
             <div class="text-center mb-14">
@@ -418,46 +430,55 @@
 <!-- ========== FOOTER ========== -->
 <footer class="bg-gray-100/80 dark:bg-gray-900/80 border-t border-gray-200 dark:border-gray-800 py-10 px-6 mt-12">
     <div class="max-w-7xl mx-auto text-center text-sm text-gray-500 dark:text-gray-400">
-        <p>© 2025 Dreaming Eden Bakery — Artisan round & tray cakes, cupcakes. Made with ❤️ and flour.</p>
+        <p>© 2025 Dreaming Eden Bakery — Artisan round cakes, tray cakes & cupcakes. Made with ❤️ and flour.</p>
     </div>
 </footer>
 
-<!-- ========== COMPLETE JAVASCRIPT (Appwrite integration) ========== -->
+<!-- ========== PRODUCTION JAVASCRIPT (Appwrite only - NO DEMO MODE) ========== -->
 <script>
     (function() {
-        // ---------- APPRWRITE INIT (UPDATE WITH YOUR CREDENTIALS) ----------
+        // ========== APPRWRITE CONFIGURATION - UPDATE THESE VALUES ==========
         const APPRWRITE_ENDPOINT = 'https://[YOUR_PROJECT_ID].appwrite.io/v1'; 
         const APPRWRITE_PROJECT = '[YOUR_PROJECT_ID]'; 
         const DATABASE_ID = '69984000000355b27bc9'; 
         const COLLECTION_ID = '[YOUR_COLLECTION_ID]'; 
 
+        // Validate credentials - if they contain brackets, show error and block orders
+        const hasValidCredentials = !APPRWRITE_ENDPOINT.includes('[YOUR') && 
+                                    !APPRWRITE_PROJECT.includes('[YOUR') &&
+                                    !DATABASE_ID.includes('[YOUR') &&
+                                    !COLLECTION_ID.includes('[YOUR');
+
+        if (!hasValidCredentials) {
+            console.error('❌ CRITICAL: Appwrite credentials not configured. Orders cannot be placed.');
+            // Show visible warning on page
+            const warningDiv = document.createElement('div');
+            warningDiv.style.cssText = 'position:fixed; top:80px; left:0; right:0; background:#dc2626; color:white; text-align:center; padding:12px; z-index:9999; font-weight:bold;';
+            warningDiv.innerHTML = '⚠️ Appwrite credentials not set. Please configure them before going live.';
+            document.body.prepend(warningDiv);
+        }
+
+        // Initialize Appwrite client (only if credentials are valid)
         let databases = null;
         let appwriteReady = false;
 
-        try {
-            if (APPRWRITE_ENDPOINT && APPRWRITE_PROJECT && !APPRWRITE_ENDPOINT.includes('[YOUR')) {
+        if (hasValidCredentials) {
+            try {
                 const client = new Appwrite.Client();
                 client
                     .setEndpoint(APPRWRITE_ENDPOINT)
                     .setProject(APPRWRITE_PROJECT);
                 databases = new Appwrite.Databases(client);
                 appwriteReady = true;
-                console.log('✅ Appwrite initialized');
-            } else {
-                console.warn('⚠️ Appwrite credentials not set. Orders will be saved locally only (demo mode).');
+                console.log('✅ Appwrite connected - ready for live orders');
+            } catch (e) {
+                console.error('❌ Appwrite initialization failed:', e);
             }
-        } catch (e) {
-            console.error('Appwrite init error:', e);
         }
 
-        // ---------- BACK TO HOME BUTTON ----------
+        // ---------- BACK TO HOME BUTTON (only appears on menu tab) ----------
         const backToHomeBtn = document.getElementById('backToHomeBtn');
-        if (backToHomeBtn) {
-            backToHomeBtn.addEventListener('click', () => {
-                switchTab('home');
-            });
-        }
-
+        
         // ---------- MODAL ELEMENTS ----------
         const modal = document.getElementById('orderModal');
         const openModalBtns = [
@@ -473,13 +494,16 @@
         const genericQtyField = document.getElementById('genericQuantityField');
         const orderForm = document.getElementById('orderForm');
         const submitBtn = document.getElementById('submitOrderBtn');
+        const formError = document.getElementById('formError');
         const homeVisitBtn = document.getElementById('homeVisitBtn');
 
         // open modal
         function openOrderModal() {
             if (modal) modal.style.display = 'flex';
+            if (formError) formError.style.display = 'none';
             lucide.createIcons();
         }
+
         openModalBtns.forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -497,7 +521,7 @@
         if (cancelModalBtn) cancelModalBtn.addEventListener('click', closeModal);
         if (modal) modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
 
-        // product type toggle - FIXED: handle all options properly
+        // product type toggle
         if (productType) {
             productType.addEventListener('change', function() {
                 const val = this.value;
@@ -518,11 +542,24 @@
             });
         }
 
-        // ---------- ORDER SUBMISSION ----------
+        // ---------- ORDER SUBMISSION (Appwrite only - NO FALLBACK) ----------
         if (orderForm) {
             orderForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
+                // Clear previous error
+                if (formError) formError.style.display = 'none';
+                
+                // Check if Appwrite is ready
+                if (!appwriteReady || !databases) {
+                    if (formError) {
+                        formError.style.display = 'block';
+                        formError.textContent = '❌ Database connection not available. Please try again later or contact us.';
+                    }
+                    return;
+                }
+
+                // Validate required fields
                 const name = document.getElementById('customerName')?.value;
                 const email = document.getElementById('customerEmail')?.value;
                 const type = productType?.value;
@@ -532,11 +569,13 @@
                     return;
                 }
 
+                // Show loading state
                 const originalText = submitBtn.innerHTML;
                 submitBtn.innerHTML = '<span class="spinner"></span> saving...';
                 submitBtn.disabled = true;
 
                 try {
+                    // Build order object
                     const orderData = {
                         customerName: name,
                         customerEmail: email,
@@ -559,31 +598,19 @@
                         orderData.quantity = parseInt(document.getElementById('genericQty')?.value) || 1;
                     }
 
-                    let orderId = null;
-
-                    if (appwriteReady && databases) {
-                        try {
-                            const response = await databases.createDocument(
-                                DATABASE_ID,
-                                COLLECTION_ID,
-                                'unique()',
-                                orderData
-                            );
-                            orderId = response.$id;
-                            console.log('✅ Order saved to Appwrite:', orderId);
-                        } catch (appwriteError) {
-                            console.error('Appwrite save failed:', appwriteError);
-                            saveToLocalStorage(orderData);
-                        }
-                    } else {
-                        saveToLocalStorage(orderData);
-                    }
-
-                    let successMsg = '✅ Order received! We\'ll contact you within 24h to discuss decorations.';
-                    if (orderId) successMsg += `\nOrder reference: ${orderId}`;
-                    else successMsg += '\n(Order saved locally)';
+                    // Save to Appwrite (no fallback)
+                    const response = await databases.createDocument(
+                        DATABASE_ID,
+                        COLLECTION_ID,
+                        'unique()',
+                        orderData
+                    );
                     
-                    alert(successMsg);
+                    const orderId = response.$id;
+                    console.log('✅ Order saved to Appwrite:', orderId);
+
+                    // Success message
+                    alert(`✅ Order received! We'll contact you within 24h to discuss decorations.\nOrder reference: ${orderId}`);
                     
                     closeModal();
                     orderForm.reset();
@@ -592,8 +619,13 @@
                     if (genericQtyField) genericQtyField.classList.add('hidden');
 
                 } catch (error) {
-                    console.error('Order error:', error);
-                    alert('Sorry, there was an error. Please try again or contact us directly.');
+                    console.error('❌ Order error:', error);
+                    if (formError) {
+                        formError.style.display = 'block';
+                        formError.textContent = '❌ Failed to save order. Please try again or contact us directly.';
+                    } else {
+                        alert('Sorry, there was an error. Please try again or contact us directly.');
+                    }
                 } finally {
                     submitBtn.innerHTML = originalText;
                     submitBtn.disabled = false;
@@ -601,14 +633,7 @@
             });
         }
 
-        function saveToLocalStorage(order) {
-            const orders = JSON.parse(localStorage.getItem('bakeryOrders') || '[]');
-            orders.push({ ...order, localId: Date.now() });
-            localStorage.setItem('bakeryOrders', JSON.stringify(orders));
-            console.log('💾 Order saved locally');
-        }
-
-        // ---------- TAB SWITCHING ----------
+        // ---------- TAB SWITCHING (with back button visibility) ----------
         const tabs = document.querySelectorAll('.tab-btn');
         const contents = {
             home: document.getElementById('tab-home'),
@@ -616,9 +641,15 @@
             about: document.getElementById('tab-about'),
             contact: document.getElementById('tab-contact')
         };
+        
         window.switchTab = function(tabId) {
+            // Hide all tabs
             Object.values(contents).forEach(s => s?.classList.add('hidden'));
+            
+            // Show selected tab
             if (contents[tabId]) contents[tabId].classList.remove('hidden');
+            
+            // Update tab buttons
             tabs.forEach(btn => {
                 btn.classList.remove('tab-active', 'bg-gradient-to-r', 'from-pink-500', 'to-orange-400', 'text-white');
                 btn.classList.add('bg-transparent', 'text-gray-600', 'dark:text-gray-300');
@@ -627,16 +658,41 @@
                     btn.classList.remove('bg-transparent', 'text-gray-600', 'dark:text-gray-300');
                 }
             });
+            
+            // Show/hide back button (only on menu tab)
+            if (backToHomeBtn) {
+                if (tabId === 'menu') {
+                    backToHomeBtn.classList.add('visible');
+                } else {
+                    backToHomeBtn.classList.remove('visible');
+                }
+            }
+            
             window.location.hash = tabId;
         };
 
-        tabs.forEach(btn => btn.addEventListener('click', (e) => { e.preventDefault(); switchTab(btn.dataset.tab); }));
+        // Back button click handler
+        if (backToHomeBtn) {
+            backToHomeBtn.addEventListener('click', () => {
+                switchTab('home');
+            });
+        }
+
+        // Tab click handlers
+        tabs.forEach(btn => btn.addEventListener('click', (e) => { 
+            e.preventDefault(); 
+            switchTab(btn.dataset.tab); 
+        }));
+        
+        // Logo click goes to home
         document.getElementById('logoHome')?.addEventListener('click', () => switchTab('home'));
 
+        // Initialize from URL hash
         const initial = window.location.hash.replace('#','') || 'home';
         if (['home','menu','about','contact'].includes(initial)) switchTab(initial);
         else switchTab('home');
 
+        // Refresh icons
         lucide.createIcons();
     })();
 </script>
